@@ -8,8 +8,8 @@ class UserProfile(models.Model):
     phone = models.BigIntegerField()
     emergency_phone = models.BigIntegerField()
     email = models.EmailField(unique = True)
-    lat = models.DecimalField(max_digits = 10, decimal_places=6)
-    long = models.DecimalField(max_digits = 10, decimal_places=6)
+    lat = models.DecimalField(max_digits = 10, decimal_places=6, default=0)
+    long = models.DecimalField(max_digits = 10, decimal_places=6, default=0)
     is_safe = models.BooleanField(default=True, blank=True)
 
     def __str__(self):
