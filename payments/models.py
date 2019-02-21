@@ -20,4 +20,4 @@ class Transaction(models.Model):
     timestamp = models.DateTimeField(default=timezone.now)
 
     def __str__(self):
-        return "{} from {} to {}".format(self.amount, self.transaction_from.name, self.transfer_to.name)
+        return "{} from {} to {}".format(self.amount, self.transfer_from.name, self.transfer_to.name)
