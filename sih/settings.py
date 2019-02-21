@@ -11,7 +11,7 @@ https://docs.djangoproject.com/en/1.11/ref/settings/
 """
 
 import os
-
+import sih.keyconfig as senv
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
@@ -20,10 +20,10 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 # See https://docs.djangoproject.com/en/1.11/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 't)nmew5am$5ue)i33nrmawclvt87!cg=+80d09vwje!57at(x%'
-
+SECRET_KEY = senv.SECRET_KEY
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = senv.DEBUG
+SERVER = senv.SERVER
 
 ALLOWED_HOSTS = []
 
@@ -75,12 +75,26 @@ WSGI_APPLICATION = 'sih.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/1.11/ref/settings/#databases
 
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
+if SERVER:
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.mysql',
+            'NAME': senv.DATABASE_NAME,
+            'USER': senv.DATABASE_USER,
+            'PASSWORD': senv.DATABASE_PASSWORD,
+            'HOST': 'localhost',
+                    'PORT': '3306',
+                    'OPTIONS': {'charset': 'utf8mb4'},
+        }
     }
-}
+else:
+    print("Using SQLite3 locally.")
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
+        }
+    }
 
 
 # Password validation
