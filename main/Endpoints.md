@@ -20,3 +20,5 @@ On clicking on confirmation link of email verification, tell you will be sent lo
 
 Login
 0 - Wrong Credentials
+
+If user logged in, redirect from signup page, login page to the nill page.
