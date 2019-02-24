@@ -24,7 +24,6 @@ SECRET_KEY = senv.SECRET_KEY
 # SECURITY WARNING: don't run with debug turned on in production!
 
 DEBUG = senv.DEBUG
-print(DEBUG)
 SERVER = senv.SERVER
 
 ALLOWED_HOSTS = ['*']

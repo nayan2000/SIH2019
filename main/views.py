@@ -176,14 +176,8 @@ def login_view(request):
     '''
     Login page
     '''
-    # if request.user is None:
-    #     pass
-    # else:
-    #     try:
-    #         if(request.user.is_authenticated() and user.participant is not None):
-    #             return redirect('registrations:index')
-    #     except:
-    #         pass
+
+    # To do checks if user is authenticated
 
     if request.method == 'POST':
         try:
@@ -197,14 +191,20 @@ def login_view(request):
         
         if user is not None:
             login(request,user)
-            print(username,password)
-            return redirect('main:nill')
-            
+            # print(username,password)
+            try:
+                user_profile = UserProfile.objects.get(user = user)
+            except:
+                return JsonResponse({"message":"No Profile for the given user. ARE YOU LOGGED IN AS ADMIN?", "status":0})
+            unique_id = str(user_profile.uuid)
+            print(unique_id)
+            return JsonResponse({"message":"Logged in Successfully!", "status":1, "user_id":unique_id})
+  
         else:
             print('Invalid login creds')
             return JsonResponse({'message':'Invalid Login Credentials', 'status':0})    
     elif request.method == 'GET':
-        return HttpResponse('Login')
+        return JsonResponse({"message":"Supposed to be Login Page."})
 
 
 
