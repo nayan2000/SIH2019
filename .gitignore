@@ -1,0 +1,8 @@
+*.pyc
+__pycache__/
+*.sqlite3
+*.sql
+.vscode/
+*.RHistory
+*.keyconfig
+keyconfig.py
