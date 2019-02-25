@@ -12,6 +12,7 @@ class Event(models.Model):
     fund_goal = models.BigIntegerField(default = 0)
     is_active = models.BooleanField(default = True, blank = True)
     created_at = models.DateTimeField(default=timezone.now)
+    # raised_amount = models.BigIntegerField(default = 0)
 
     def __str__(self):
         return self.name
