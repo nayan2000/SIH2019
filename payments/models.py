@@ -17,6 +17,18 @@ class Event(models.Model):
     def __str__(self):
         return self.name
 
+    def getEventAdmin(self):
+        return self.admin
+    
+    def getFundRaised(self):
+        event_transactions = self.admin.received.all()
+        amount_raised = 0
+        if event_transactions:
+            for transaction in event_transactions:
+                amount_raised+=transaction.amount
+        return amount_raised
+
+
 class Transaction(models.Model):
     transfer_to = models.ForeignKey('main.UserProfile', on_delete=models.SET_NULL, related_name = 'received', null=True)
     transfer_from = models.ForeignKey('main.UserProfile', on_delete = models.SET_NULL, related_name='sent', null=True)
