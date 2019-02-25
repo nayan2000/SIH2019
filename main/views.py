@@ -4,6 +4,7 @@ import requests
 import json
 import sendgrid
 from random import choice
+import uuid
 
 from django.shortcuts import render
 from django.contrib.auth import login, logout, authenticate
@@ -43,9 +44,9 @@ def register(request):
             return JsonResponse({"message": "Please check syntax of JSON data passed.", 'status':4})
         try:
             # see whether all fields passed in JSON or not
-            data['phone']
             data['name']
             data['email']
+            data['phone']
             data['emergency_phone']
         except KeyError as missing_data:
             return JsonResponse({"message": "Missing the following field: {}".format(missing_data), 'status':2})
@@ -206,7 +207,54 @@ def login_view(request):
     elif request.method == 'GET':
         return JsonResponse({"message":"Supposed to be Login Page."})
 
+@csrf_exempt
+def update_location(request):
+    if request.method=='POST':
+        
+        try:
+            user_id = str(request.META['HTTP_X_USER_ID'])
+        except KeyError:
+            return JsonResponse({"message":"Header missing: X-USER-ID", "status":2})
 
+        try:
+            # just to decode JSON properly
+            data = json.loads(request.body.decode('utf8').replace("'", '"'))
+        except:
+            return JsonResponse({"message": "Please check syntax of JSON data passed.", 'status':4})
+
+        try:
+            user_profile = UserProfile.objects.get(uuid=user_id)
+        except Exception:
+            return JsonResponse({"message":"The given UserId doesnt correspond to any user."})
+
+        try:
+            data['long']
+            data['lat']
+        except KeyError as missing_data:
+            return JsonResponse({"message":"Field Missing: {0}".format(missing_data), "status":3})
+        
+        try:
+            latitude = float(data['lat'])
+        except:
+            return JsonResponse({"message":'Invalid value for \'lat\'', "status":0})
+        try:
+            longitude = float(data['long'])
+        except:
+            return JsonResponse({"message":'Invalid value for \'long\'', "status":0})
+
+        if abs(latitude)>90:
+            return JsonResponse({"message":"Latitude can only be in between -90 and 90.","status":0})
+        if abs(longitude)>180:
+            return JsonResponse({"message":"Longitude can only be in between -180 and 180.","status":0})
+
+        user_profile.lat = latitude
+        user_profile.long = longitude
+        user_profile.save()
+
+        return JsonResponse({"message":"Successfully Updated Latitude and Longitude values.", "status":1})
+
+    if request.method == 'GET':
+        return JsonResponse({"message":"API endpoint for updation of User Latitude and Longitude."})
 
         
 
