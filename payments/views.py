@@ -1,6 +1,7 @@
 from django.contrib.auth.models import User
 from django.shortcuts import render
 from django.views.decorators.csrf import csrf_exempt,csrf_protect
+from django.urls import reverse
 
 from django.http import HttpResponse, JsonResponse
 
@@ -10,8 +11,17 @@ import requests
 from main.models import UserProfile
 from payments.models import Event, Transaction
 
-# from instamojo_wrapper import Instamojo
+from instamojo_wrapper import Instamojo
 
+from sih.keyconfig import *
+
+# if SERVER:
+# 	api = Instamojo(api_key=INSTA_API_KEY, auth_token=AUTH_TOKEN)
+# else:
+api = Instamojo(api_key=INSTA_API_KEY_test, auth_token=AUTH_TOKEN_test, endpoint='https://test.instamojo.com/api/1.1/') 
+
+
+@csrf_exempt
 def get_active_events(request):
 
     if request.method == 'GET':
@@ -34,6 +44,7 @@ def get_active_events(request):
     elif request.method == 'POST':
         return JsonResponse({"message":"A <GET> Request only endpoint for getting details of active events."})
 
+@csrf_exempt
 def get_event_details(request, event_id):
     if request.method == 'GET':
 
@@ -110,11 +121,50 @@ def payment_request(request):
                 raise Exception
         except:
             return JsonResponse({"message":"Invalid Event ID/Donations for this event closed.", "status":0})
-        return JsonResponse({"message":"Successful Request"})
 
-
-        #main payment code
+        purpose = 'Donating for Event:'+ str(event_id)
+        response = api.payment_request_create(
+            amount=str(amount),
+            purpose=purpose,
+            send_email=False,
+            email=user_profile.email,
+            buyer_name=user_profile.name,
+            phone=user_profile.phone,
+            redirect_url=request.build_absolute_uri(reverse("payments:payment_response"))
+        )
+        return JsonResponse({"url":response['payment_request']['longurl'], "status":1})
 
     if request.method == "GET":
         return JsonResponse({"message":"API endpoint for processing payment requests."})
+
+def payment_response(request):
+
+    data = request.GET
+    payid=str(data['payment_request_id'])
+    # try:
+    #     headers = {'X-Api-Key': kINSTA_API_KEY, 'X-Auth-Token': AUTH_TOKEN}
+    #     r = requests.get('https://www.instamojo.com/api/1.1/payment-requests/'+str(payid),headers=headers)
+    # except:
+    headers = {'X-Api-Key': INSTA_API_KEY_test, 'X-Auth-Token': AUTH_TOKEN_test}
+    response = requests.get('https://test.instamojo.com/api/1.1/payment-requests/'+str(payid), headers=headers)
     
+    json_ob = response.json()
+    payment_status = json_ob['success']
+
+    if not payment_status:
+        return JsonResponse({"message":'Transaction failed!', "status":0})
+    
+    else:
+        payment_request = json_ob['payment_request']
+        purpose = payment_request['purpose']
+        event_id = int(purpose.split(':')[1])
+        amount = int(float(payment_request['amount']))
+        email = payment_request["email"]
+        payment_id=json_ob['payment_request']['payments'][0]['payment_id']
+
+        event = Event.objects.get(id=event_id)
+        transfer_from = UserProfile.objects.get(email=email)
+        transfer_to = event.admin
+
+        transaction, created = Transaction.objects.get_or_create(amount=amount, transfer_from=transfer_from, transfer_to=transfer_to, payment_id=payment_id)
+        return JsonResponse({"message":'Transaction Successful!', "status":1})
