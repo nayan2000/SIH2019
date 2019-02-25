@@ -277,9 +277,28 @@ def update_safe_status(request):
         except:
             return JsonResponse({"message": "Please check syntax of JSON data passed.", 'status':4})
         
+        try:
+            is_safe = data['is_safe']
+        except KeyError as missing_data:
+            return JsonResponse({"message":"Field Missing: {0}".format(missing_data), "status":3})
+        
+        # if (len(str(is_safe)))>1:
+        #     return JsonResponse({"message":"Invalid Value for is_safe. Acceptable: 0 or 1", "status":0})
+        
+        if str(is_safe) not in ["0","1"]:
+            return JsonResponse({"message":"Invalid Value for is_safe. Pass 0 or 1", "status":0})
+        
+        is_safe = int(is_safe)
 
- 
+        if is_safe:
+            user_profile.is_safe = True
+        if not is_safe:
+            user_profile.is_safe = False
+        user_profile.save()
+        
+        return JsonResponse({"message":"Updated status successfully!", "status":1})
 
-
+    if request.method == "GET":
+        return JsonResponse({"message":"API endpoint for updating safety status"})
         
 
