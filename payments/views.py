@@ -168,4 +168,30 @@ def payment_response(request):
         transaction, created = Transaction.objects.get_or_create(amount=amount, transfer_from=transfer_from, transfer_to=transfer_to, payment_id=payment_id)
         return JsonResponse({"message":'Transaction Successful!', "status":1})
 
+# @csrf_exempt        
+# def top_event_donations(request, event_id):
+    
+#     if request.method == 'GET':
+#         try:
+#             user_id = str(request.META['HTTP_X_USER_ID'])
+#         except KeyError:
+#             return JsonResponse({"message":"Header missing: X-USER-ID", "status":2})
+
+#         try:
+#             user_profile = UserProfile.objects.get(uuid=user_id)
+#             if not user_profile:
+#                 raise Exception
+#         except Exception:
+#             return JsonResponse({"message":"The given UserId doesnt correspond to any user."})
+        
+#         try:
+#             event =  Event.objects.get(id = event_id)
+#         except:
+#             return JsonResponse({"message":"No Event corresponding to this event ID.", "status":0})
+
+        
+
+        
+
+
 

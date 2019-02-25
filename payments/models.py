@@ -38,3 +38,9 @@ class Transaction(models.Model):
 
     def __str__(self):
         return "{} from {} to {}".format(self.amount, self.transfer_from.name, self.transfer_to.name)
+
+    def getPayerName(self):
+        return self.transfer_from.name
+
+    def getReceiverName(self):
+        return self.transfer_to.name

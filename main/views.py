@@ -32,7 +32,6 @@ url = 'http://alertify.org'
 def get_location(request):
     if request.method == 'GET':
         user_profiles = UserProfile.objects.all().exclude(lat=0, long=0).values('lat','long')
-        print(user_profiles)
         return JsonResponse({"location":list(user_profiles)})
 
 def nill(request):
