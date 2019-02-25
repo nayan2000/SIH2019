@@ -23,7 +23,7 @@ from fcm_django.models import FCMDevice
 
 from main.models import UserProfile
 from main import utils, email_body
-from sih.keyconfig import SENDGRID_API_KEY
+from sih.keyconfig import SENDGRID_API_KEY, FIREBASE_API_KEY, FCM_URL
 
 chars = string.ascii_lowercase + string.ascii_uppercase + string.digits
 url = 'http://alertify.org'
@@ -146,12 +146,55 @@ def mail_login_creds(user_profile):
         message = "Your login credentials have been sent to {0}.".format(send_to)
         return message
 
+# @csrf_exempt
+# def sendFCM(request, title, body):
+#     if request.method == 'POST':
+#         try:
+#             user_id = str(request.META['HTTP_X_USER_ID'])
+#         except KeyError:
+#             return JsonResponse({"message":"Header missing: X-USER-ID", "status":2})
 
-    # devices = FCMDevice.objects.all()
-    # devices.send_message(
-    #     title="TsunaNews",
-    #     body="What's with the Tsunami Surfing?"
-    # )
+#         try:
+#             user_profile = UserProfile.objects.get(uuid=user_id)
+#         except Exception:
+#             return JsonResponse({"message":"The given UserId doesnt correspond to any user."})
+
+#         try:
+#             # just to decode JSON properly
+#             data = json.loads(request.body.decode('utf8').replace("'", '"'))
+#         except:
+#             return JsonResponse({"message": "Please check syntax of JSON data passed.", 'status':4})
+
+
+#             # data = json.loads(request.body.decode('utf8').replace("'", '"'))
+#             # title = data['title']
+#             # body = data['body']
+#         devices = FCMDevice.objects.all()
+#         devices.send_message(
+#             title="TsunaNews",
+#             body="What's with the Tsunami Surfing?"
+#         )
+
+
+# Alternate Method
+def sendNotif(fcmDeviceToken, title, message):
+    payload = {
+     "data":{
+        "title":title,
+        "image":"https://firebase.google.com/images/social.png",
+        "message":message,
+      }, "to": fcmDeviceToken
+    }
+    headers={
+      "Content-Type": "application/json",
+      "Authorization": "key={}".format(FIREBASE_API_KEY)
+      }
+    url = FCM_URL
+    payload = json.dumps(payload)
+    print(payload)
+    res = requests.post(url=url, headers=headers, data=payload)
+    # json=json.dumps(payload)
+    return res
 
 
 def email_confirm(request,token):
