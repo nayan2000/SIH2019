@@ -19,7 +19,14 @@ class Event(models.Model):
 
     def getEventAdmin(self):
         return self.admin
-    
+
+    def getUserContribution(self, user_id):
+        user_contribution = 0
+        user_transactions = self.admin.received.filter(transfer_from__id=user_id)
+        for transaction in user_transactions:
+            user_contribution += transaction.amount
+        return user_contribution
+
     def getFundRaised(self):
         event_transactions = self.admin.received.all()
         amount_raised = 0
