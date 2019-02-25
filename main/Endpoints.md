@@ -22,3 +22,10 @@ Login
 0 - Wrong Credentials
 
 If user logged in, redirect from signup page, login page to the nill page.
+
+UpdateLocation:
+0 - Validation Error
+1 - Successfully updated
+2 - Missing Headers
+3 - Missing Data
+4 - Wrong JSON

@@ -4,6 +4,7 @@ import requests
 import json
 import sendgrid
 from random import choice
+import uuid
 
 from django.shortcuts import render
 from django.contrib.auth import login, logout, authenticate
@@ -45,9 +46,9 @@ def register(request):
             return JsonResponse({"message": "Please check syntax of JSON data passed.", 'status':4})
         try:
             # see whether all fields passed in JSON or not
-            data['phone']
             data['name']
             data['email']
+            data['phone']
             data['emergency_phone']
         except KeyError as missing_data:
             return JsonResponse({"message": "Missing the following field: {}".format(missing_data), 'status':2})
@@ -186,14 +187,8 @@ def login_view(request):
     '''
     Login page
     '''
-    # if request.user is None:
-    #     pass
-    # else:
-    #     try:
-    #         if(request.user.is_authenticated() and user.participant is not None):
-    #             return redirect('registrations:index')
-    #     except:
-    #         pass
+
+    # To do checks if user is authenticated
 
     if request.method == 'POST':
         try:
@@ -207,16 +202,113 @@ def login_view(request):
         
         if user is not None:
             login(request,user)
-            print(username,password)
-            return redirect('main:nill')
-            
+            # print(username,password)
+            try:
+                user_profile = UserProfile.objects.get(user = user)
+            except:
+                return JsonResponse({"message":"No Profile for the given user. ARE YOU LOGGED IN AS ADMIN?", "status":0})
+            unique_id = str(user_profile.uuid)
+            print(unique_id)
+            return JsonResponse({"message":"Logged in Successfully!", "status":1, "user_id":unique_id})
+  
         else:
             print('Invalid login creds')
             return JsonResponse({'message':'Invalid Login Credentials', 'status':0})    
     elif request.method == 'GET':
-        return HttpResponse('Login')
+        return JsonResponse({"message":"Supposed to be Login Page."})
 
+@csrf_exempt
+def update_location(request):
+    if request.method=='POST':
+        
+        try:
+            user_id = str(request.META['HTTP_X_USER_ID'])
+        except KeyError:
+            return JsonResponse({"message":"Header missing: X-USER-ID", "status":2})
 
+        try:
+            user_profile = UserProfile.objects.get(uuid=user_id)
+        except Exception:
+            return JsonResponse({"message":"The given UserId doesnt correspond to any user."})
 
+        try:
+            # just to decode JSON properly
+            data = json.loads(request.body.decode('utf8').replace("'", '"'))
+        except:
+            return JsonResponse({"message": "Please check syntax of JSON data passed.", 'status':4})
+
+        try:
+            data['long']
+            data['lat']
+        except KeyError as missing_data:
+            return JsonResponse({"message":"Field Missing: {0}".format(missing_data), "status":3})
+        
+        try:
+            latitude = float(data['lat'])
+        except:
+            return JsonResponse({"message":'Invalid value for \'lat\'', "status":0})
+        try:
+            longitude = float(data['long'])
+        except:
+            return JsonResponse({"message":'Invalid value for \'long\'', "status":0})
+
+        if abs(latitude)>90:
+            return JsonResponse({"message":"Latitude can only be in between -90 and 90.","status":0})
+        if abs(longitude)>180:
+            return JsonResponse({"message":"Longitude can only be in between -180 and 180.","status":0})
+
+        user_profile.lat = latitude
+        user_profile.long = longitude
+        user_profile.save()
+
+        return JsonResponse({"message":"Successfully Updated Latitude and Longitude values.", "status":1})
+
+    if request.method == 'GET':
+        return JsonResponse({"message":"API endpoint for updation of User Latitude and Longitude."})
+
+@csrf_exempt
+def update_safe_status(request):
+    
+    if request.method == 'POST':
+
+        try:
+            user_id = str(request.META['HTTP_X_USER_ID'])
+        except KeyError:
+            return JsonResponse({"message":"Header missing: X-USER-ID", "status":2})
+
+        try:
+            user_profile = UserProfile.objects.get(uuid=user_id)
+        except Exception:
+            return JsonResponse({"message":"The given UserId doesnt correspond to any user."})
+
+        try:
+            # just to decode JSON properly
+            data = json.loads(request.body.decode('utf8').replace("'", '"'))
+        except:
+            return JsonResponse({"message": "Please check syntax of JSON data passed.", 'status':4})
+        
+        try:
+            is_safe = data['is_safe']
+        except KeyError as missing_data:
+            return JsonResponse({"message":"Field Missing: {0}".format(missing_data), "status":3})
+        
+        # if (len(str(is_safe)))>1:
+        #     return JsonResponse({"message":"Invalid Value for is_safe. Acceptable: 0 or 1", "status":0})
+        
+        if str(is_safe) not in ["0","1"]:
+            return JsonResponse({"message":"Invalid Value for is_safe. Pass 0 or 1", "status":0})
+        
+        is_safe = int(is_safe)
+
+        if is_safe:
+            user_profile.is_safe = True
+        if not is_safe:
+            user_profile.is_safe = False
+        user_profile.save()
+        
+        return JsonResponse({"message":"Updated status successfully!", "status":1})
+
+    if request.method == "GET":
+        return JsonResponse({"message":"API endpoint for updating safety status"})
         
 
