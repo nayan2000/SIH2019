@@ -28,6 +28,13 @@ from sih.keyconfig import SENDGRID_API_KEY, FIREBASE_API_KEY, FCM_URL
 chars = string.ascii_lowercase + string.ascii_uppercase + string.digits
 url = 'http://alertify.org'
 
+@csrf_exempt
+def get_location(request):
+    if request.method == 'GET':
+        user_profiles = UserProfile.objects.all().exclude(lat=0, long=0).values('lat','long')
+        print(user_profiles)
+        return JsonResponse({"location":list(user_profiles)})
+
 def nill(request):
     return HttpResponse('nill')
 

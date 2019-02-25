@@ -20,7 +20,6 @@ from sih.keyconfig import *
 # else:
 api = Instamojo(api_key=INSTA_API_KEY_test, auth_token=AUTH_TOKEN_test, endpoint='https://test.instamojo.com/api/1.1/') 
 
-
 @csrf_exempt
 def get_active_events(request):
 
@@ -168,3 +167,5 @@ def payment_response(request):
 
         transaction, created = Transaction.objects.get_or_create(amount=amount, transfer_from=transfer_from, transfer_to=transfer_to, payment_id=payment_id)
         return JsonResponse({"message":'Transaction Successful!', "status":1})
+
+
