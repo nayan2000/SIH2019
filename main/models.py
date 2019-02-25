@@ -23,3 +23,12 @@ class UserProfile(models.Model):
 
     def __str__(self):
         return self.name
+
+    def getTotalDonation(self):
+        user_transactions = self.sent.all()
+        total_amount_donated = 0
+        for transaction in user_transactions:
+            total_amount_donated += transaction.amount
+        return total_amount_donated
+    
+            

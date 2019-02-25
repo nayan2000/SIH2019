@@ -228,6 +228,8 @@ def update_location(request):
 
         try:
             user_profile = UserProfile.objects.get(uuid=user_id)
+            if not user_profile:
+                raise Exception
         except Exception:
             return JsonResponse({"message":"The given UserId doesnt correspond to any user."})
 
@@ -278,6 +280,8 @@ def update_safe_status(request):
 
         try:
             user_profile = UserProfile.objects.get(uuid=user_id)
+            if not user_profile:
+                raise Exception
         except Exception:
             return JsonResponse({"message":"The given UserId doesnt correspond to any user."})
 
