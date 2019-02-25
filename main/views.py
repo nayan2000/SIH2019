@@ -217,16 +217,16 @@ def update_location(request):
             return JsonResponse({"message":"Header missing: X-USER-ID", "status":2})
 
         try:
-            # just to decode JSON properly
-            data = json.loads(request.body.decode('utf8').replace("'", '"'))
-        except:
-            return JsonResponse({"message": "Please check syntax of JSON data passed.", 'status':4})
-
-        try:
             user_profile = UserProfile.objects.get(uuid=user_id)
         except Exception:
             return JsonResponse({"message":"The given UserId doesnt correspond to any user."})
 
+        try:
+            # just to decode JSON properly
+            data = json.loads(request.body.decode('utf8').replace("'", '"'))
+        except:
+            return JsonResponse({"message": "Please check syntax of JSON data passed.", 'status':4})
+            
         try:
             data['long']
             data['lat']
@@ -255,6 +255,12 @@ def update_location(request):
 
     if request.method == 'GET':
         return JsonResponse({"message":"API endpoint for updation of User Latitude and Longitude."})
+
+@csrf_exempt
+def update_safe_status(request):
+    
+    if request.method == 'POST':
+
 
         
 
