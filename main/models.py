@@ -16,9 +16,9 @@ class UserProfile(models.Model):
 
     lat = models.DecimalField(max_digits = 10, decimal_places=6, default=0)
     long = models.DecimalField(max_digits = 10, decimal_places=6, default=0)
-    
     is_safe = models.BooleanField(default=True, blank=True)
     email_verified = models.BooleanField(default=False, blank=True)
+    device_token = models.CharField(max_length=260, null=True)
 
 
     def __str__(self):

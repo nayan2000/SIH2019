@@ -97,6 +97,19 @@ else:
     }
 
 
+# Settings for Firebase Cloud Messaging
+FCM_DJANGO_SETTINGS = {
+        "FCM_SERVER_KEY": "AAAAyWgqucE:APA91bFNdjn_4TuA9D47dGLkp8nqsRo7N_W5cFGfEfs3K5Gdqy6NCdd62nDnyRX925pyoWAy93VMqCg5fIti8wshUNe3hy9DFau6UKnz3E3ied3vCLaijmlXsMMLI58V8j39QhUV3p_I",
+         # true if you want to have only one active device per registered user at a time
+         # default: False
+        "ONE_DEVICE_PER_USER": False,
+         # devices to which notifications cannot be sent,
+         # are deleted upon receiving error response from FCM
+         # default: False
+        "DELETE_INACTIVE_DEVICES": False,
+}
+
+
 # Password validation
 # https://docs.djangoproject.com/en/1.11/ref/settings/#auth-password-validators
 

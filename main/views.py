@@ -18,6 +18,8 @@ from django.contrib.auth.models import User
 from sendgrid.helpers import *
 from sendgrid.helpers.mail import Mail, Content, Email
 
+from fcm_django.models import FCMDevice
+
 from main.models import UserProfile
 from main import utils, email_body
 from sih.keyconfig import SENDGRID_API_KEY
@@ -142,6 +144,14 @@ def mail_login_creds(user_profile):
         
         message = "Your login credentials have been sent to {0}.".format(send_to)
         return message
+
+
+    # devices = FCMDevice.objects.all()
+    # devices.send_message(
+    #     title="TsunaNews",
+    #     body="What's with the Tsunami Surfing?"
+    # )
+
 
 def email_confirm(request,token):
     user_profile = utils.authenticate_email_token(token)

@@ -15,7 +15,7 @@ db_connection = sqlite3.connect(database='../db.sqlite3')
 # db_connection = sql.connect(host='hostname', database='db_name', user='username', password='password')
 x = 'lat'
 y = 'long'
-df = pd.read_sql('SELECT {0}, {1} FROM main_userprofile'.format(x, y),
+df = pd.read_sql('SELECT {0}, {1}, is_safe FROM main_userprofile'.format(x, y),
                  con=db_connection)
 print(df)
 
@@ -46,7 +46,11 @@ def filter_bound(df, loc, bounds):
     return latdf[(latdf[y] > lon1) & (latdf[y] < lon2)]
 
 
-df = filter_bound(df, (23, 56), (10, 10))
+# check safe value
+# df = df.loc[df['is_safe'] == 0]
+
+
+df = filter_bound(df[[x, y]], (23, 56), (10, 10))
 print(df)
 coords = df.values
 db = DBSCAN(
@@ -64,8 +68,12 @@ num_clusters = len(set(cluster_labels))
 print('Number of clusters: {}'.format(num_clusters))
 
 clusters = pd.Series([coords[cluster_labels == n] for n in range(num_clusters)])
-centermost_points = clusters.map(get_centermost_point)
-print(centermost_points)
+
+def getCMpoints(cluster):
+    centermost_points = clusters.map(get_centermost_point)
+    return centermost_points
+
+# print(centermost_points)
 
 # all done, print time
 print('Done in ', time()-start_time, ' secs')

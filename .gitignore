@@ -6,3 +6,6 @@ __pycache__/
 *.RHistory
 *.keyconfig
 keyconfig.py
+venv/
+*.csv
+CustomerMap.html
