@@ -9,3 +9,4 @@ keyconfig.py
 venv/
 *.csv
 CustomerMap.html
+utils/readSQLdf.py
