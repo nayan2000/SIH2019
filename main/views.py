@@ -146,34 +146,44 @@ def mail_login_creds(user_profile):
         message = "Your login credentials have been sent to {0}.".format(send_to)
         return message
 
-# @csrf_exempt
-# def sendFCM(request, title, body):
-#     if request.method == 'POST':
-#         try:
-#             user_id = str(request.META['HTTP_X_USER_ID'])
-#         except KeyError:
-#             return JsonResponse({"message":"Header missing: X-USER-ID", "status":2})
 
-#         try:
-#             user_profile = UserProfile.objects.get(uuid=user_id)
-#         except Exception:
-#             return JsonResponse({"message":"The given UserId doesnt correspond to any user."})
-
-#         try:
-#             # just to decode JSON properly
-#             data = json.loads(request.body.decode('utf8').replace("'", '"'))
-#         except:
-#             return JsonResponse({"message": "Please check syntax of JSON data passed.", 'status':4})
+def check_user(request):
+    try:
+        user_id = str(request.META['HTTP_X_USER_ID'])
+    except KeyError:
+        return 0, JsonResponse({"message":"Header missing: X-USER-ID", "status":2})
+    try:
+        user_profile = UserProfile.objects.get(uuid=user_id)
+        if not user_profile:
+            raise Exception
+    except Exception:
+        return 0, JsonResponse({"message":"The given UserId doesnt correspond to any user."})
+    return 1, user_id, user_profile
 
 
-#             # data = json.loads(request.body.decode('utf8').replace("'", '"'))
-#             # title = data['title']
-#             # body = data['body']
-#         devices = FCMDevice.objects.all()
-#         devices.send_message(
-#             title="TsunaNews",
-#             body="What's with the Tsunami Surfing?"
-#         )
+
+@csrf_exempt
+def update_device_token(request):
+    if request.method == 'POST':
+        check = check_user(request)
+        if check:
+            user_id, user_profile = check[1:]
+        else:
+            return check[1]
+        try:
+            # just to decode JSON properly
+            data = json.loads(request.body.decode('utf8').replace("'", '"'))
+        except:
+            return JsonResponse({"message": "Please check syntax of JSON data passed.", 'status':4})
+        try:
+            device_token = data['device_token']
+        except KeyError as missing_data:
+            return JsonResponse({"message":"Field Missing: {0}".format(missing_data), "status":3})
+
+        user_profile.device_token = device_token
+        user_profile.save()
+
+        return JsonResponse({"message":"Successfully Updated Device Token values.", "status":1})
 
 
 # Alternate Method
@@ -191,7 +201,6 @@ def sendNotif(fcmDeviceToken, title, message):
       }
     url = FCM_URL
     payload = json.dumps(payload)
-    print(payload)
     res = requests.post(url=url, headers=headers, data=payload)
     # json=json.dumps(payload)
     return res
