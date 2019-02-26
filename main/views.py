@@ -245,8 +245,11 @@ def login_view(request):
             data = json.loads(request.body.decode('utf8').replace("'", '"'))
         except:
             return JsonResponse({"message": "Please check syntax of JSON data passed.", 'status':4})
-        username = data['username']
-        password = data['password']
+        try:
+            username = data['username']
+            password = data['password']
+        except KeyError as missing_data:
+            return JsonResponse({"message":"Field Missing: {0}".format(missing_data),"status":2})
         user = authenticate(username = username, password = password)
         
         if user is not None:

@@ -51,3 +51,4 @@ class Transaction(models.Model):
 
     def getReceiverName(self):
         return self.transfer_to.name
+
