@@ -1,10 +1,7 @@
 
 from django.db import models
 from main.models import UserProfile
-from django.utils import timezone
-
-class EventAdmin(models.Model):
-    
+from django.utils import timezone    
 
 class Event(models.Model):
     admin = models.OneToOneField('main.UserProfile', on_delete=models.CASCADE, null=True)
