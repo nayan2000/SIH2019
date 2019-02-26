@@ -30,7 +30,7 @@ class UserProfile(models.Model):
         return total_amount_donated
     
     def getEventDonation(self, event_id):
-        #this import had to be here to avoid circular import Error
+        #this import has to be here to avoid circular import Error
         from payments.models import Event
 
         user_contribution = 0
