@@ -39,7 +39,7 @@ def nill(request):
 
 @csrf_exempt
 def register(request):
-    
+
     # Why the fuck did you send a get request here?
     if request.method == 'GET':
         return JsonResponse({'status':3, 'message':'I am being kind enough by sending you a FuckOff message here.'})
@@ -63,23 +63,23 @@ def register(request):
             int(data['phone'])
         except:
             #phone numbers should be an integer or string only of numbers
-            return JsonResponse({'status':0,'message':'Please enter a valid Phone Number.'}) 
+            return JsonResponse({'status':0,'message':'Please enter a valid Phone Number.'})
 
         try:
             int(data['emergency_phone'])
         except:
             #phone numbers should be an integer or string only of numbers
-            return JsonResponse({'status':0,'message':'Please enter a valid Emergency Phone Number.'})   
+            return JsonResponse({'status':0,'message':'Please enter a valid Emergency Phone Number.'})
 
         if len(data['phone'])!=10:
             return JsonResponse({'status':0,'message':'Please enter a valid Phone Number.'})
         if len(data['emergency_phone'])!=10:
             return JsonResponse({'status':0,'message':'Please enter a valid Emergency Phone Number.'})
-           
+
         email = data['email']
         if not re.match(r"(^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$)", email):
             return JsonResponse({'status':0, 'message':'Please enter a valid Email address.'})
-        
+
         try:
             UserProfile.objects.get(email=email)
             return JsonResponse({'status':0, 'message':'This Email has already been registered. Try some other email.'})
@@ -112,7 +112,7 @@ def register(request):
             except Exception:
                 profile.delete()
                 return JsonResponse({'message':'Error sending email. Please try again.', 'status':0})
-            
+
             message = "Registration successful! A confirmation link has been sent to %s. Kindly click on it to verify your email address." %(send_to)
             return JsonResponse({'message':message, 'status':1})
         except Exception:
@@ -148,58 +148,88 @@ def mail_login_creds(user_profile):
             user.delete()
             message = "Error in mailing your login credentials. Please try again."
             return message
-        
+
         message = "Your login credentials have been sent to {0}.".format(send_to)
         return message
 
+
+def check_user(request):
+    try:
+        user_id = str(request.META['HTTP_X_USER_ID'])
+    except KeyError:
+        return 0, JsonResponse({"message":"Header missing: X-USER-ID", "status":2})
+    try:
+        user_profile = UserProfile.objects.get(uuid=user_id)
+        if not user_profile:
+            raise Exception
+    except Exception:
+        return 0, JsonResponse({"message":"The given UserId doesnt correspond to any user."})
+    return 1, user_id, user_profile
+
+
+
+@csrf_exempt
+def update_device_token(request):
+    if request.method == 'POST':
+        check = check_user(request)
+        if check:
+            user_id, user_profile = check[1:]
+        else:
+            return check[1]
+        try:
+            # just to decode JSON properly
+            data = json.loads(request.body.decode('utf8').replace("'", '"'))
+        except:
+            return JsonResponse({"message": "Please check syntax of JSON data passed.", 'status':4})
+        try:
+            device_token = data['device_token']
+        except KeyError as missing_data:
+            return JsonResponse({"message":"Field Missing: {0}".format(missing_data), "status":3})
+
+        user_profile.device_token = device_token
+        user_profile.save()
+
+        return JsonResponse({"message":"Successfully Updated Device Token values.", "status":1})
+
+
+
 # @csrf_exempt
-# def sendFCM(request, title, body):
+# def adminNotify(request):
 #     if request.method == 'POST':
-#         try:
-#             user_id = str(request.META['HTTP_X_USER_ID'])
-#         except KeyError:
-#             return JsonResponse({"message":"Header missing: X-USER-ID", "status":2})
-
-#         try:
-#             user_profile = UserProfile.objects.get(uuid=user_id)
-#         except Exception:
-#             return JsonResponse({"message":"The given UserId doesnt correspond to any user."})
-
+#         # Note: Change to admin Auth
+#         check = check_user(request)
+#         if check:
+#             user_id, user_profile = check[1:]
+#         else:
+#             return check[1]
 #         try:
 #             # just to decode JSON properly
 #             data = json.loads(request.body.decode('utf8').replace("'", '"'))
 #         except:
 #             return JsonResponse({"message": "Please check syntax of JSON data passed.", 'status':4})
+#         try:
+#             title = data['title']
+#             message = data['message']
+#         except KeyError as missing_data:
+#             return JsonResponse({"message":"Field Missing: {0}".format(missing_data), "status":3})
 
 
-#             # data = json.loads(request.body.decode('utf8').replace("'", '"'))
-#             # title = data['title']
-#             # body = data['body']
-#         devices = FCMDevice.objects.all()
-#         devices.send_message(
-#             title="TsunaNews",
-#             body="What's with the Tsunami Surfing?"
-#         )
-
-
-# Alternate Method
-def sendNotif(fcmDeviceToken, title, message):
+# alternate method
+def sendnotif(fcmdevicetoken, title, message):
     payload = {
      "data":{
         "title":title,
         "image":"https://firebase.google.com/images/social.png",
         "message":message,
-      }, "to": fcmDeviceToken
+      }, "to": fcmdevicetoken
     }
     headers={
-      "Content-Type": "application/json",
-      "Authorization": "key={}".format(FIREBASE_API_KEY)
+      "content-type": "application/json",
+      "authorization": "key={}".format(FIREBASE_API_KEY)
       }
     url = FCM_URL
     payload = json.dumps(payload)
-    print(payload)
     res = requests.post(url=url, headers=headers, data=payload)
-    # json=json.dumps(payload)
     return res
 
 
@@ -251,7 +281,7 @@ def login_view(request):
         except KeyError as missing_data:
             return JsonResponse({"message":"Field Missing: {0}".format(missing_data),"status":2})
         user = authenticate(username = username, password = password)
-        
+
         if user is not None:
             login(request,user)
             # print(username,password)
@@ -262,17 +292,17 @@ def login_view(request):
             unique_id = str(user_profile.uuid)
             print(unique_id)
             return JsonResponse({"message":"Logged in Successfully!", "status":1, "user_id":unique_id})
-  
+
         else:
             print('Invalid login creds')
-            return JsonResponse({'message':'Invalid Login Credentials', 'status':0})    
+            return JsonResponse({'message':'Invalid Login Credentials', 'status':0})
     elif request.method == 'GET':
         return JsonResponse({"message":"Supposed to be Login Page."})
 
 @csrf_exempt
 def update_location(request):
     if request.method=='POST':
-        
+
         try:
             user_id = str(request.META['HTTP_X_USER_ID'])
         except KeyError:
@@ -296,7 +326,7 @@ def update_location(request):
             data['lat']
         except KeyError as missing_data:
             return JsonResponse({"message":"Field Missing: {0}".format(missing_data), "status":3})
-        
+
         try:
             latitude = float(data['lat'])
         except:
@@ -322,7 +352,7 @@ def update_location(request):
 
 @csrf_exempt
 def update_safe_status(request):
-    
+
     if request.method == 'POST':
 
         try:
@@ -342,18 +372,18 @@ def update_safe_status(request):
             data = json.loads(request.body.decode('utf8').replace("'", '"'))
         except:
             return JsonResponse({"message": "Please check syntax of JSON data passed.", 'status':4})
-        
+
         try:
             is_safe = data['is_safe']
         except KeyError as missing_data:
             return JsonResponse({"message":"Field Missing: {0}".format(missing_data), "status":3})
-        
+
         # if (len(str(is_safe)))>1:
         #     return JsonResponse({"message":"Invalid Value for is_safe. Acceptable: 0 or 1", "status":0})
-        
+
         if str(is_safe) not in ["0","1"]:
             return JsonResponse({"message":"Invalid Value for is_safe. Pass 0 or 1", "status":0})
-        
+
         is_safe = int(is_safe)
 
         if is_safe:
@@ -361,10 +391,10 @@ def update_safe_status(request):
         if not is_safe:
             user_profile.is_safe = False
         user_profile.save()
-        
+
         return JsonResponse({"message":"Updated status successfully!", "status":1})
 
     if request.method == "GET":
         return JsonResponse({"message":"API endpoint for updating safety status"})
-        
+
 
