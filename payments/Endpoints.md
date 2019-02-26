@@ -1,0 +1,6 @@
+TEST CREDENTIALS FOR INSTAMOJO
+
+Card Number: 4242 4242 4242 4242
+Exp MM/YY: 01/20
+CVV: 111
+Second Factor Authentication code: 1221

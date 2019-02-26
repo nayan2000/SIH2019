@@ -19,9 +19,8 @@ class UserProfile(models.Model):
     email_verified = models.BooleanField(default=False, blank=True)
     device_token = models.CharField(max_length=260, null=True)
 
-
     def __str__(self):
-        return self.name
+        return "#%d: %s" % (self.id, self.name)
 
     def getTotalDonation(self):
         user_transactions = self.sent.all()
@@ -30,4 +29,13 @@ class UserProfile(models.Model):
             total_amount_donated += transaction.amount
         return total_amount_donated
     
-            
+    def getEventDonation(self, event_id):
+        #this import had to be here to avoid circular import Error
+        from payments.models import Event
+
+        user_contribution = 0
+        event_admin_id = Event.objects.get(id=event_id).admin.id
+        user_transactions = self.sent.filter(transfer_to__id=event_admin_id)
+        for transaction in user_transactions:
+            user_contribution += transaction.amount
+        return user_contribution        
