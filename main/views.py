@@ -191,28 +191,43 @@ def update_device_token(request):
         user_profile.save()
 
         return JsonResponse({"message":"Successfully Updated Device Token values.", "status":1})
+    if request != "POST":
+        return JsonRespons({"message":"Requests other than POST is not Supported"})
 
 
 
-# @csrf_exempt
-# def adminNotify(request):
-#     if request.method == 'POST':
-#         # Note: Change to admin Auth
-#         check = check_user(request)
-#         if check:
-#             user_id, user_profile = check[1:]
-#         else:
-#             return check[1]
-#         try:
-#             # just to decode JSON properly
-#             data = json.loads(request.body.decode('utf8').replace("'", '"'))
-#         except:
-#             return JsonResponse({"message": "Please check syntax of JSON data passed.", 'status':4})
-#         try:
-#             title = data['title']
-#             message = data['message']
-#         except KeyError as missing_data:
-#             return JsonResponse({"message":"Field Missing: {0}".format(missing_data), "status":3})
+@csrf_exempt
+def admin_notify(request):
+    if request.method == 'POST':
+        # Note: Change to admin Auth
+        check = check_user(request)
+        try:
+            user_id, user_profile = check[1:]
+        except ValueError:
+            return check[1]
+        try:
+            # just to decode JSON properly
+            data = json.loads(request.body.decode('utf8').replace("'", '"'))
+        except:
+            return JsonResponse({"message": "Please check syntax of JSON data passed.", 'status':4})
+        try:
+            title = data['title']
+            message = data['message']
+        except KeyError as missing_data:
+            return JsonResponse({"message":"Field Missing: {0}".format(missing_data), "status":3})
+        # Make list of user_profile.device_token and query all
+        undone_users = []
+        for u in UserProfile.objects.all():
+            devToken = u.device_token
+            try:
+                res = sendnotif(devToken, title, message)
+                print(res)
+                if res['failure'] == 1:
+                    undone_users.append(u)
+            except Exception:
+                undone_users.append(u)
+        return JsonResponse({ "undone_users":str(len(undone_users))})
+            # Send sms to undone_users
 
 
 # alternate method
