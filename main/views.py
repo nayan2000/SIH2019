@@ -32,7 +32,7 @@ url = 'http://alertify.org'
 @csrf_exempt
 def get_location(request):
     if request.method == 'GET':
-        user_profiles = UserProfile.objects.all().exclude(lat=0, long=0).values('lat','long')
+        user_profiles = UserProfile.objects.all().exclude(lat=0, long=0).values('lat','long', 'is_safe')
         return JsonResponse({"location":list(user_profiles)})
 
 def nill(request):
