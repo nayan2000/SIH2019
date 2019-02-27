@@ -28,7 +28,7 @@ class UserProfile(models.Model):
         for transaction in user_transactions:
             total_amount_donated += transaction.amount
         return total_amount_donated
-    
+
     def getEventDonation(self, event_id):
         #this import has to be here to avoid circular import Error
         from payments.models import Event
@@ -38,4 +38,4 @@ class UserProfile(models.Model):
         user_transactions = self.sent.filter(transfer_to__id=event_admin_id)
         for transaction in user_transactions:
             user_contribution += transaction.amount
-        return user_contribution        
+        return user_contribution

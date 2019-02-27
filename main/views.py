@@ -173,9 +173,9 @@ def check_user(request):
 def update_device_token(request):
     if request.method == 'POST':
         check = check_user(request)
-        if check:
+        try:
             user_id, user_profile = check[1:]
-        else:
+        except ValueError:
             return check[1]
         try:
             # just to decode JSON properly
@@ -304,17 +304,11 @@ def login_view(request):
 def update_location(request):
     if request.method=='POST':
 
+        check = check_user(request)
         try:
-            user_id = str(request.META['HTTP_X_USER_ID'])
-        except KeyError:
-            return JsonResponse({"message":"Header missing: X-USER-ID", "status":2})
-
-        try:
-            user_profile = UserProfile.objects.get(uuid=user_id)
-            if not user_profile:
-                raise Exception
-        except Exception:
-            return JsonResponse({"message":"The given UserId doesnt correspond to any user."})
+            user_id, user_profile = check[1:]
+        except ValueError:
+            return check[1]
 
         try:
             # just to decode JSON properly
@@ -356,17 +350,11 @@ def update_safe_status(request):
 
     if request.method == 'POST':
 
+        check = check_user(request)
         try:
-            user_id = str(request.META['HTTP_X_USER_ID'])
-        except KeyError:
-            return JsonResponse({"message":"Header missing: X-USER-ID", "status":2})
-
-        try:
-            user_profile = UserProfile.objects.get(uuid=user_id)
-            if not user_profile:
-                raise Exception
-        except Exception:
-            return JsonResponse({"message":"The given UserId doesnt correspond to any user."})
+            user_id, user_profile = check[1:]
+        except ValueError:
+            return check[1]
 
         try:
             # just to decode JSON properly

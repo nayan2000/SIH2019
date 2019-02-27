@@ -6,6 +6,7 @@ app_name = 'main'
 urlpatterns = [
     url(r'^$',views.nill,name='nill'),
 	url(r'^get_location/?',views.get_location,name='get_location'),
+	url(r'^update_device_token/?',views.update_device_token,name='update_device_token'),
 	url(r'^register/?',views.register,name='register'),
 	url(r'^email_confirm/(?P<token>\w+)/?',views.email_confirm,name = 'email_confirm'),
 	url(r'^login/?',views.login_view,name='login'),
