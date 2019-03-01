@@ -83,5 +83,7 @@ select a suitable amount and go ahead and pay. You're done.
 !intro would give:
 Hey! Myself AlertBot. I am here for your service. I am a part of the Rescue Operations Team.
 
+TODO: Create '!help' command.
+
 '''
 

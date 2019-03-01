@@ -7,18 +7,30 @@ from django.http import HttpResponse, JsonResponse
 
 import json
 import requests
+import re
+import sendgrid
+import string
+from random import choice
+
 
 from main.models import UserProfile
+from  main import email_body, utils
 from payments.models import Event, Transaction
 
 from instamojo_wrapper import Instamojo
 
 from sih.keyconfig import *
 
+from sendgrid.helpers import *
+from sendgrid.helpers.mail import Mail, Content, Email
+
+chars = string.ascii_lowercase + string.ascii_uppercase + string.digits
+
 # if SERVER:
 # 	api = Instamojo(api_key=INSTA_API_KEY, auth_token=AUTH_TOKEN)
 # else:
 api = Instamojo(api_key=INSTA_API_KEY_test, auth_token=AUTH_TOKEN_test, endpoint='https://test.instamojo.com/api/1.1/') 
+url = 'http://alertify.org'
 
 @csrf_exempt
 def get_active_events(request):
@@ -168,6 +180,98 @@ def payment_response(request):
         transaction, created = Transaction.objects.get_or_create(amount=amount, transfer_from=transfer_from, transfer_to=transfer_to, payment_id=payment_id)
         return JsonResponse({"message":'Transaction Successful!', "status":1})
 
+@csrf_exempt
+def add_event(request):
+    
+    '''
+        The view that will be called when DA will add events from the WebPortal.
+    '''
+
+    if request.method == 'POST':
+
+        try:
+            user_id = str(request.META['HTTP_X_USER_ID'])
+        except KeyError:
+            return JsonResponse({"message":"Header missing: X-USER-ID", "status":2})
+
+        try:
+            user_profile = UserProfile.objects.get(uuid=user_id)
+            if not user_profile:
+                raise Exception
+        except Exception:
+            return JsonResponse({"message":"The given UserId doesnt correspond to any user."})
+
+        # if not user_profile.is_da:
+        #     return JsonResponse({"message":"You must be logged in as a DA to add events.", "status":0})
+
+        try:
+            # just to decode JSON properly
+            data = json.loads(request.body.decode('utf8').replace("'", '"'))
+        except:
+            return JsonResponse({"message": "Please check syntax of JSON data passed.", 'status':4})
+
+        try:
+            event_name = data['name']
+            description = data['description']
+            fund_goal = data['fund_goal']
+            phone = data['phone']
+            email = data['email']
+        except KeyError as missing_data:
+            return JsonResponse({"message": "Missing the following field: {}".format(missing_data), 'status':2})
+        
+        try:
+            int(data['fund_goal'])
+        except:
+            #phone numbers should be an integer or string only of numbers
+            return JsonResponse({'status':0,'message':'Fund Goal has to be a positive integer.'})
+        
+        try:
+            int(data['phone'])
+        except:
+            #phone numbers should be an integer or string only of numbers
+            return JsonResponse({'status':0,'message':'Please enter a valid phone number.'})
+        
+        if len(phone)!=10:
+            return JsonResponse({'status':0,'message':'Please enter a valid Phone Number.'})
+        
+        if not re.match(r"(^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$)", email):
+            return JsonResponse({'status':0, 'message':'Please enter a valid Email address.'})
+
+        try:
+            UserProfile.objects.get(email=email)
+            return JsonResponse({'status':0, 'message':'This Email has already been registered. PLease try some other email.'})
+        except:
+            pass
+
+        try:
+            profile = UserProfile()
+            event_name = ' '.join(str(event_name).strip().split())
+            name = 'Admin for Event: +'+ event_name
+            profile.name = name
+            profile.email = str(email)
+            profile.phone = int(phone)
+            profile.emergency_phone = int(phone)
+            profile.save()
+
+            username = profile.name.split(':')[1] + str(profile.id)
+            password = ''.join(choice(chars) for i in range(8))
+            user = User.objects.create_user(username=username, password=password)
+            profile.user = user
+            profile.save()
+
+            event = Event.objects.create(name = event_name, description = description, admin = profile, fund_goal=fund_goal)
+            event.save()
+
+            message = 'Event added Successfully!'
+            return JsonResponse({'message':message, 'status':1})
+
+        except Exception as e:
+            print(e)
+            return JsonResponse({'message': 'Event could not be added. Please try again.', 'status':0})
+
+    if request.method == 'GET':
+        return JsonResponse({"message":"API for DA to add events."})
+
 # @csrf_exempt        
 # def top_event_donations(request, event_id):
     
@@ -188,10 +292,3 @@ def payment_response(request):
 #             event =  Event.objects.get(id = event_id)
 #         except:
 #             return JsonResponse({"message":"No Event corresponding to this event ID.", "status":0})
-
-        
-
-        
-
-
-
