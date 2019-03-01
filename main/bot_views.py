@@ -45,11 +45,12 @@ def command_response(request):
         send_purpose = False
         if command[0]=='?':
             send_purpose = True
-            command[0] =='!'
+            command = '!'+command[1:]
         try:
             command_name = command.lower()
             command = BotCommand.objects.get(name = command_name)
-        except Exception:
+        except Exception as e:
+            print(e)
             return JsonResponse({"message":"Invalid Command. Use !commands to see the list of commands.",'status':0})
         if send_purpose:
             response = command.short_description
