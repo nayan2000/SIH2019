@@ -4,6 +4,12 @@ from django.contrib.auth.models import User
 import uuid
 
 class UserProfile(models.Model):
+
+    '''
+        This model contains all details of a user including phone, email, name
+        and login creds. The latitude and longitude are kept here temporarily
+        and will be shifted to firebase, if this project grows.
+    '''
     user = models.OneToOneField('auth.User', on_delete = models.SET_NULL, null=True)
     name = models.CharField(max_length = 100)
     phone = models.BigIntegerField()
@@ -39,3 +45,23 @@ class UserProfile(models.Model):
         for transaction in user_transactions:
             user_contribution += transaction.amount
         return user_contribution
+
+'''
+    Had to import it below to avoid issue of circular imports as UserProfile
+    was needed in utils.
+'''
+
+from main import utils
+
+class BotCommand(models.Model):
+
+    '''
+        Model to store possible commands of the chatbot in the app
+        Response field is kept to store responses of commands as updated by the DA
+        from the web portal.
+    '''
+    command_name = models.CharField(max_length=10, choices = utils.COMMAND_CHOICES, unique=True)
+    command_response = models.TextField(default='', blank=True)
+
+    def __str__(self):
+        return "Command #%d: %s" % (self.id, self.command_name)
