@@ -18,7 +18,7 @@ from sih.keyconfig import *
 # if SERVER:
 # 	api = Instamojo(api_key=INSTA_API_KEY, auth_token=AUTH_TOKEN)
 # else:
-api = Instamojo(api_key=INSTA_API_KEY_test, auth_token=AUTH_TOKEN_test, endpoint='https://test.instamojo.com/api/1.1/') 
+api = Instamojo(api_key=INSTA_API_KEY_test, auth_token=AUTH_TOKEN_test, endpoint='https://test.instamojo.com/api/1.1/')
 
 @csrf_exempt
 def get_active_events(request):
@@ -64,8 +64,8 @@ def get_event_details(request, event_id):
         except:
             return JsonResponse({"message":"No Event corresponding to this event ID.", "status":0})
         event_details = {
-            "name":event.name, 
-            "id":event.id, 
+            "name":event.name,
+            "id":event.id,
             "description":event.description,
             "fund_goal":event.fund_goal,
             "fund_raised":event.getFundRaised()
@@ -98,7 +98,7 @@ def payment_request(request):
             data = json.loads(request.body.decode('utf8').replace("'", '"'))
         except:
             return JsonResponse({"message": "Please check syntax of JSON data passed.", 'status':4})
-        
+
         try:
             event_id = data["event_id"]
             amount = data["amount"]
@@ -107,7 +107,7 @@ def payment_request(request):
         try:
             amount = int(amount)
         except:
-            return JsonResponse({"message":"Invalid amount. Expected Numeric Input.", "status":0})      
+            return JsonResponse({"message":"Invalid amount. Expected Numeric Input.", "status":0})
         if amount<10:
             return JsonResponse({"message":"Minimum contribution is Rs. 10", "status":0})
 
@@ -146,13 +146,13 @@ def payment_response(request):
     # except:
     headers = {'X-Api-Key': INSTA_API_KEY_test, 'X-Auth-Token': AUTH_TOKEN_test}
     response = requests.get('https://test.instamojo.com/api/1.1/payment-requests/'+str(payid), headers=headers)
-    
+
     json_ob = response.json()
     payment_status = json_ob['success']
 
     if not payment_status:
         return JsonResponse({"message":'Transaction failed!', "status":0})
-    
+
     else:
         payment_request = json_ob['payment_request']
         purpose = payment_request['purpose']
@@ -168,9 +168,9 @@ def payment_response(request):
         transaction, created = Transaction.objects.get_or_create(amount=amount, transfer_from=transfer_from, transfer_to=transfer_to, payment_id=payment_id)
         return JsonResponse({"message":'Transaction Successful!', "status":1})
 
-# @csrf_exempt        
+# @csrf_exempt
 # def top_event_donations(request, event_id):
-    
+
 #     if request.method == 'GET':
 #         try:
 #             user_id = str(request.META['HTTP_X_USER_ID'])
@@ -183,15 +183,15 @@ def payment_response(request):
 #                 raise Exception
 #         except Exception:
 #             return JsonResponse({"message":"The given UserId doesnt correspond to any user."})
-        
+
 #         try:
 #             event =  Event.objects.get(id = event_id)
 #         except:
 #             return JsonResponse({"message":"No Event corresponding to this event ID.", "status":0})
 
-        
 
-        
+
+
 
 
 

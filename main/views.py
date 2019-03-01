@@ -19,8 +19,6 @@ from django.contrib.auth.models import User
 from sendgrid.helpers import *
 from sendgrid.helpers.mail import Mail, Content, Email
 
-from fcm_django.models import FCMDevice
-
 from main.models import UserProfile
 from main import utils, email_body
 from sih.keyconfig import SENDGRID_API_KEY, FIREBASE_API_KEY, FCM_URL
@@ -400,7 +398,6 @@ def update_safe_status(request):
 
     if request.method == "GET":
         return JsonResponse({"message":"API endpoint for updating safety status"})
-
 
 
 

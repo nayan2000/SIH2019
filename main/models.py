@@ -23,8 +23,10 @@ class UserProfile(models.Model):
     lat = models.DecimalField(max_digits = 10, decimal_places=6, default=0)
     long = models.DecimalField(max_digits = 10, decimal_places=6, default=0)
     is_safe = models.BooleanField(default=True, blank=True)
+    is_food_req = models.BooleanField(default=True, blank=True)
     email_verified = models.BooleanField(default=False, blank=True)
     device_token = models.CharField(max_length=260, null=True)
+    is_da = models.BooleanField(default=False, blank=True)
 
     def __str__(self):
         return "#%d: %s" % (self.id, self.name)
@@ -57,13 +59,14 @@ COMMAND_CHOICES = (
 )
 
 '''
-To Create all Commands on your local server once in beginning. 
+To Create all Commands on your local server once in beginning.
 Run python manage.py shell and then enter the following:
 
 from main.models import COMMAND_CHOICES, BotCommand
 for i in range(len(COMMAND_CHOICES)):
-	BotCommand.objects.create(name = COMMAND_CHOICES[i][0], short_description = COMMAND_CHOICES[i][1])
+    BotCommand.objects.create(name = COMMAND_CHOICES[i][0], short_description = COMMAND_CHOICES[i][1])
 '''
+
 
 class BotCommand(models.Model):
 
@@ -83,4 +86,3 @@ class BotCommand(models.Model):
     class Meta:
         verbose_name = 'Bot Command'
         verbose_name_plural = 'Bot Commands'
-        
