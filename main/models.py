@@ -10,6 +10,7 @@ class UserProfile(models.Model):
         and login creds. The latitude and longitude are kept here temporarily
         and will be shifted to firebase, if this project grows.
     '''
+
     user = models.OneToOneField('auth.User', on_delete = models.SET_NULL, null=True)
     name = models.CharField(max_length = 100)
     phone = models.BigIntegerField()
@@ -62,7 +63,6 @@ Run python manage.py shell and then enter the following:
 from main.models import COMMAND_CHOICES, BotCommand
 for i in range(len(COMMAND_CHOICES)):
 	BotCommand.objects.create(name = COMMAND_CHOICES[i][0], short_description = COMMAND_CHOICES[i][1])
-
 '''
 
 class BotCommand(models.Model):
@@ -72,9 +72,15 @@ class BotCommand(models.Model):
         Response field is kept to store responses of commands as updated by the DA
         from the web portal.
     '''
+
     name = models.CharField(max_length=10, unique=True)
     response = models.TextField(default='', blank=True)
     short_description = models.CharField(max_length = 150, blank=True)
 
     def __str__(self):
         return "Command #%d: %s" % (self.id, self.name)
+
+    class Meta:
+        verbose_name = 'Bot Command'
+        verbose_name_plural = 'Bot Commands'
+        
