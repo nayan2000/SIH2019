@@ -46,12 +46,24 @@ class UserProfile(models.Model):
             user_contribution += transaction.amount
         return user_contribution
 
-'''
-    Had to import it below to avoid issue of circular imports as UserProfile
-    was needed in utils.
-'''
+COMMAND_CHOICES = (
+	('!food','FOOD DROP AREAS'),
+	('!safe','SAFE LOCATIONS'),
+	('!contact','EMERGENCY CONTACTS'),
+	('!commands', 'LIST OF COMMANDS'),
+	('!intro', 'ABOUT ME'),
+	('!donate', 'DONATE FOR EVENTS')
+)
 
-from main import utils
+'''
+To Create all Commands on your local server once in beginning. 
+Run python manage.py shell and then enter the following:
+
+from main.models import COMMAND_CHOICES, BotCommand
+for i in range(len(COMMAND_CHOICES)):
+	BotCommand.objects.create(name = COMMAND_CHOICES[i][0], short_description = COMMAND_CHOICES[i][1])
+
+'''
 
 class BotCommand(models.Model):
 
@@ -60,8 +72,9 @@ class BotCommand(models.Model):
         Response field is kept to store responses of commands as updated by the DA
         from the web portal.
     '''
-    command_name = models.CharField(max_length=10, choices = utils.COMMAND_CHOICES, unique=True)
-    command_response = models.TextField(default='', blank=True)
+    name = models.CharField(max_length=10, unique=True)
+    response = models.TextField(default='', blank=True)
+    short_description = models.CharField(max_length = 150, blank=True)
 
     def __str__(self):
-        return "Command #%d: %s" % (self.id, self.command_name)
+        return "Command #%d: %s" % (self.id, self.name)

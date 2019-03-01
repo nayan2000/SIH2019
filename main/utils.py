@@ -1,13 +1,5 @@
 from main.models import UserProfile
 
-
-COMMAND_CHOICES = (
-	('!food','FOOD_DROP_AREAS'),
-	('!safe','SAFE_LOCATIONS'),
-	('!contact','EMERGENCY_CONTACTS')
-)
-
-
 def generate_email_token(user_profile):
 	'''
 	To generate a unique email token for a registering user

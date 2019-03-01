@@ -191,8 +191,8 @@ def update_device_token(request):
         user_profile.save()
 
         return JsonResponse({"message":"Successfully Updated Device Token values.", "status":1})
-    if request != "POST":
-        return JsonRespons({"message":"Requests other than POST is not Supported"})
+    else:
+        return JsonResponse({"message":"Requests other than POST is not Supported"})
 
 
 
@@ -400,5 +400,7 @@ def update_safe_status(request):
 
     if request.method == "GET":
         return JsonResponse({"message":"API endpoint for updating safety status"})
+
+
 
 
