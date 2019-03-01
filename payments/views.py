@@ -201,8 +201,10 @@ def add_event(request):
         except Exception:
             return JsonResponse({"message":"The given UserId doesnt correspond to any user."})
 
-        # if not user_profile.is_da:
-        #     return JsonResponse({"message":"You must be logged in as a DA to add events.", "status":0})
+        ''' Add the below 2 lines on every page where DA functionalities are there. '''
+
+        if not user_profile.is_da:
+            return JsonResponse({"message":"You must be logged in as a DA to add events.", "status":0})
 
         try:
             # just to decode JSON properly
