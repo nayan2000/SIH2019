@@ -28,6 +28,7 @@ class UserProfile(models.Model):
     device_token = models.CharField(max_length=260, null=True)
     is_da = models.BooleanField(default=False, blank=True)
 
+
     def __str__(self):
         return "#%d: %s" % (self.id, self.name)
 

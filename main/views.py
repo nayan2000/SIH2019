@@ -41,7 +41,7 @@ def register(request):
 
     # Why the fuck did you send a get request here?
     if request.method == 'GET':
-        return JsonResponse({'status':3, 'message':'I am being kind enough by sending you a FuckOff message here.'})
+        return JsonResponse({'status':3, 'message':'The API where new users can register themselves on the app.'})
 
     if request.method=='POST':
         try:
