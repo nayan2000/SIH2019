@@ -248,7 +248,7 @@ def add_event(request):
         try:
             profile = UserProfile()
             event_name = ' '.join(str(event_name).strip().split())
-            name = 'Admin for Event: +'+ event_name
+            name = 'Admin for Event: '+ event_name
             profile.name = name
             profile.email = str(email)
             profile.phone = int(phone)
