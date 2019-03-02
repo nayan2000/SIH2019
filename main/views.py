@@ -413,6 +413,30 @@ def update_safe_status(request):
     if request.method == "GET":
         return JsonResponse({"message":"API endpoint for updating safety status"})
 
+@csrf_exempt
+def send_sms_request(list, message="URGENT: We have predicted high chances of a Tsunami striking in your area. Please be aware."):
+    import json
+    url = 'http://api.msg91.com/api/v2/sendsms'
+
+    headers = {
+        'authkey':'263822AtqZb3rXHfIk5c6f0be5',
+        'Content-Type':'application/json'
+    }
+    data = {
+        "sender": "ALERTF",
+        "route": "4",
+        "country": "91",
+        "sms": [
+            {
+                "message": message ,
+                "to": list
+            }
+        ]
+    }
+    print(data)
+    response = requests.post(url = url, data = json.dumps(data), headers = headers)
+    print(response.text)
+    
 
 @csrf_exempt
 def send_sms(request):
@@ -433,40 +457,17 @@ def send_sms(request):
         except:
             return JsonResponse({"message": "Please check syntax of JSON data passed.", 'status':4})
         try:
-            print(request)
-            print(data)
             phone = data['phone']
             message = data['sms-body']
-            return JsonResponse({"message":"Great Going"})
         except KeyError as missing_data:
             return JsonResponse({"message":"Field Missing: {0}".format(missing_data), "status":3})
+        phone = str(phone)
+        if len(phone)!=10 or not int(phone):
+            return JsonResponse({"message":"Please enter a valid phone number."})
 
-@csrf_exempt
-def send_sms_request(list):
-    import json
-    url = 'http://api.msg91.com/api/v2/sendsms'
-
-    headers = {
-        'authkey':'263822AtqZb3rXHfIk5c6f0be5',
-        'Content-Type':'application/json'
-    }
-    print(list)
-    data = {
-        "sender": "ALERTF",
-        "route": "4",
-        "country": "91",
-        "sms": [
-            {
-                "message": "URGENT: We have predicted high chances of a Tsunami striking in your area. Please be aware.",
-                "to": list
-            }
-        ]
-    }
-    print(data)
-
-    response = requests.post(url = url, data = json.dumps(data), headers = headers)
-    print(response.text)
-
+        phone = [str(phone)]
+        send_sms_request(phone, message)
+        return JsonResponse({"message":"SMS sent!"})
 
 @csrf_exempt
 def upload_csv(request):
