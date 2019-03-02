@@ -15,6 +15,9 @@ urlpatterns = [
 	#url which returns JSON of unsafe users to Frontend
 	url(r'^get_location/?',views.get_location,name='get_location'),
 
+	#url which returns JSON of unsafe users to Frontend
+	url(r'^get_food_location/?',views.get_food_location,name='get_food_location'),
+
 	#url to update device token on refresh from the app
 	url(r'^update_device_token/?',views.update_device_token,name='update_device_token'),
 
