@@ -413,7 +413,7 @@ def update_safe_status(request):
 
 
 @csrf_exempt
-def test_sms(request):
+def send_sms(request):
     if request.method == 'POST':
         check = check_user(request)
 
