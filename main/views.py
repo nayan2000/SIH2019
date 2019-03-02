@@ -19,7 +19,7 @@ from django.contrib.auth.models import User
 from sendgrid.helpers import *
 from sendgrid.helpers.mail import Mail, Content, Email
 
-from main.models import UserProfile
+from main.models import UserProfile, UploadFile
 from main import utils, email_body
 from sih.keyconfig import SENDGRID_API_KEY, FIREBASE_API_KEY, FCM_URL
 
@@ -437,3 +437,31 @@ def send_sms(request):
             return JsonResponse({"message":"Great Going"})
         except KeyError as missing_data:
             return JsonResponse({"message":"Field Missing: {0}".format(missing_data), "status":3})
+
+@csrf_exempt
+def upload_csv(request):
+    if request.method == 'GET':
+        return JsonResponse({"message":"Upload Excel/CSV files. "})
+    # if not GET, then proceed
+    FILE_FORMATS_SUPPORTED = ('.csv', '.xlsx', '.xls')
+    try:    
+        file = request.FILES["csv_file"]
+        if not file.name.endswith(FILE_FORMATS_SUPPORTED):
+            return JsonResponse({"message":"File is not of CSV/XLSX type."})
+        
+        if file.multiple_chunks():
+            message = "Uploaded file is too big (%.2f MB)." % (csv_file.size/(1000*1000),)
+            return JsonResponse({"message":message})
+        
+        upload_instance = UploadFile.objects.create(name=file.name, filer=file)
+        return JsonResponse({"message":"Uploaded Successfully!"})
+    
+    except:
+        return JsonResponse({"message":"Error in Uploading Excel. Please try again."})
+
+def excel_to_csv(excel_name):
+    import pandas as pd
+    data_xls = pd.read_excel(excel_name, 'Sheet1', index_col=None)
+    csv_name = excel_name.strip('.')[0]+'.csv'
+    data_xls.to_csv(csv_name, encoding='utf-8')
+

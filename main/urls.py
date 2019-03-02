@@ -15,6 +15,8 @@ urlpatterns = [
 	#url which returns JSON of is_safe and paramters
 	url(r'^get_location/?',views.get_location,name='get_location'),
 
+	url(r'^upload_csv/?', views.upload_csv, name='upload_csv'),
+
 	url(r'^get_food_location/?',views.get_food_location,name='get_food_location'),
 
 	#url to update device token on refresh from the app
