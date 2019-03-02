@@ -24,6 +24,7 @@ from sendgrid.helpers.mail import Mail, Content, Email
 from main.models import UserProfile, UploadFile
 from main import utils, email_body
 from sih.keyconfig import SENDGRID_API_KEY, FIREBASE_API_KEY, FCM_URL
+from sih.keyconfig import *
 from sih.settings import MEDIA_ROOT
 
 chars = string.ascii_lowercase + string.ascii_uppercase + string.digits
@@ -416,10 +417,10 @@ def update_safe_status(request):
 @csrf_exempt
 def send_sms_request(list, message="URGENT: We have predicted high chances of a Tsunami striking in your area. Please be aware."):
     import json
-    url = 'http://api.msg91.com/api/v2/sendsms'
+    url = URL_SMS
 
     headers = {
-        'authkey':'263822AtqZb3rXHfIk5c6f0be5',
+        'authkey':AUTH_KEY_SMS,
         'Content-Type':'application/json'
     }
     data = {
@@ -485,10 +486,23 @@ def upload_csv(request):
             return JsonResponse({"message":message})
         
         upload_instance = UploadFile.objects.create(name=file.name, filer=file)
-        return JsonResponse({"message":"Uploaded Successfully!"})
-    
+        send_sms_excel(upload_instance)
+        message = "Uploaded Successfully!"
+        context = {
+            'error_heading': "File Uploaded Successfully!",
+            'message': message,
+            'url':url
+        }
+        return render(request, 'main/message.html', context)
+
     except:
-        return JsonResponse({"message":"Error in Uploading Excel. Please try again."})
+        message = "Error in Uploading File. Please try again."
+        context = {
+            'error_heading': "File not uploaded.",
+            'message': message,
+            'url':url
+        }
+        return render(request, 'main/message.html', context)
 
 def send_sms_excel(file_instance):
     
