@@ -87,3 +87,12 @@ class BotCommand(models.Model):
     class Meta:
         verbose_name = 'Bot Command'
         verbose_name_plural = 'Bot Commands'
+
+
+class UploadFile(models.Model):
+    '''
+        Model to store the files uploaded by the DA
+    '''
+
+    name = models.CharField(max_length=64)
+    filer = models.FileField(upload_to='../media/')

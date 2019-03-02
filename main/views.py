@@ -117,6 +117,7 @@ def register(request):
         except Exception:
             return JsonResponse({'message': 'Registration failed due to unknown reasons.', 'status':0})
 
+
 def mail_login_creds(user_profile):
     if not user_profile.user:
         username = user_profile.name.split(' ')[0] + str(user_profile.id)
@@ -203,6 +204,10 @@ def admin_notify(request):
             user_id, user_profile = check[1:]
         except ValueError:
             return check[1]
+
+        if not user_profile.is_da:
+            return JsonResponse({"message":"You must be logged in as a DA to add events.", "status":0})
+
         try:
             # just to decode JSON properly
             data = json.loads(request.body.decode('utf8').replace("'", '"'))
@@ -400,4 +405,27 @@ def update_safe_status(request):
         return JsonResponse({"message":"API endpoint for updating safety status"})
 
 
+@csrf_exempt
+def test_sms(request):
+    if request.method == 'POST':
+        check = check_user(request)
 
+        try:
+            user_id, user_profile = check[1:]
+        except ValueError:
+            return check[1]
+
+        if not user_profile.is_da:
+            return JsonResponse({"message":"You must be logged in as a DA to add events.", "status":0})
+
+        try:
+            # just to decode JSON properly
+            data = json.loads(request.body.decode('utf8').replace("'", '"'))
+        except:
+            return JsonResponse({"message": "Please check syntax of JSON data passed.", 'status':4})
+        try:
+            print(request)
+            print(data)
+            return JsonResponse({"message":"Great Going"})
+        except KeyError as missing_data:
+            return JsonResponse({"message":"Field Missing: {0}".format(missing_data), "status":3})
