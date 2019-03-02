@@ -426,6 +426,8 @@ def test_sms(request):
         try:
             print(request)
             print(data)
+            phone = data['phone']
+            message = data['sms-body']
             return JsonResponse({"message":"Great Going"})
         except KeyError as missing_data:
             return JsonResponse({"message":"Field Missing: {0}".format(missing_data), "status":3})
