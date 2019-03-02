@@ -29,7 +29,7 @@ chars = string.ascii_lowercase + string.ascii_uppercase + string.digits
 # if SERVER:
 # 	api = Instamojo(api_key=INSTA_API_KEY, auth_token=AUTH_TOKEN)
 # else:
-api = Instamojo(api_key=INSTA_API_KEY_test, auth_token=AUTH_TOKEN_test, endpoint='https://test.instamojo.com/api/1.1/') 
+api = Instamojo(api_key=INSTA_API_KEY_test, auth_token=AUTH_TOKEN_test, endpoint='https://test.instamojo.com/api/1.1/')
 url = 'http://alertify.org'
 
 @csrf_exempt
@@ -182,7 +182,7 @@ def payment_response(request):
 
 @csrf_exempt
 def add_event(request):
-    
+
     '''
         The view that will be called when DA will add events from the WebPortal.
     '''
@@ -220,22 +220,22 @@ def add_event(request):
             email = data['email']
         except KeyError as missing_data:
             return JsonResponse({"message": "Missing the following field: {}".format(missing_data), 'status':2})
-        
+
         try:
             int(data['fund_goal'])
         except:
             #phone numbers should be an integer or string only of numbers
             return JsonResponse({'status':0,'message':'Fund Goal has to be a positive integer.'})
-        
+
         try:
             int(data['phone'])
         except:
             #phone numbers should be an integer or string only of numbers
             return JsonResponse({'status':0,'message':'Please enter a valid phone number.'})
-        
+
         if len(phone)!=10:
             return JsonResponse({'status':0,'message':'Please enter a valid Phone Number.'})
-        
+
         if not re.match(r"(^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$)", email):
             return JsonResponse({'status':0, 'message':'Please enter a valid Email address.'})
 
