@@ -479,7 +479,7 @@ def upload_csv(request):
     try:    
         file = request.FILES["csv_file"]
         if not file.name.endswith(FILE_FORMATS_SUPPORTED):
-            return JsonResponse({"message":"File is not of CSV/XLSX type."})
+            return JsonResponse({"message":"File is not of CSV type."})
         
         if file.multiple_chunks():
             message = "Uploaded file is too big (%.2f MB)." % (csv_file.size/(1000*1000),)
@@ -495,7 +495,8 @@ def upload_csv(request):
         }
         return render(request, 'main/message.html', context)
 
-    except:
+    except Exception as e:
+        print(e)
         message = "Error in Uploading File. Please try again."
         context = {
             'error_heading': "File not uploaded.",
