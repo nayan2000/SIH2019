@@ -25,7 +25,7 @@ urlpatterns = [
 
 	#urls to update location and safe status
 	url(r'^update_location/?',views.update_location,name='update_location'),
-	url(r'^test_sms/?',views.test_sms,name='test_sms'),
+	url(r'^send_sms/?',views.send_sms,name='send_sms'),
 	url(r'^update_safe_status/?',views.update_safe_status,name='update-safe_status'),
 
 	#chat bot urls
