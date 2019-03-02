@@ -39,7 +39,6 @@ def get_food_location(request):
         user_profiles = UserProfile.objects.all().exclude(lat=0, long=0).values('lat','long', 'is_food_req', 'name')
         return JsonResponse({"location":list(user_profiles)})
 
-
 def nill(request):
     return HttpResponse('nill')
 

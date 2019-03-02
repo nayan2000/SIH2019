@@ -12,10 +12,9 @@ urlpatterns = [
 	url(r'^email_confirm/(?P<token>\w+)/?',views.email_confirm,name = 'email_confirm'),
 	url(r'^login/?',views.login_view,name='login'),
 
-	#url which returns JSON of unsafe users to Frontend
+	#url which returns JSON of is_safe and paramters
 	url(r'^get_location/?',views.get_location,name='get_location'),
 
-	#url which returns JSON of unsafe users to Frontend
 	url(r'^get_food_location/?',views.get_food_location,name='get_food_location'),
 
 	#url to update device token on refresh from the app
