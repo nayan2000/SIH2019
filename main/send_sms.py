@@ -14,16 +14,13 @@ data = {
     "country": "91",
     "sms": [
         {
-            "message": "Message pdhoge to pitoge",
-            "to": [
-                "9592400151",
-                "7015557612"
-            ]
+            "message": "URGENT: We have predicted high chances of a Tsunami striking in your area. Please be aware and take suitable precautions.",
+            "to": list
         }
     ]
 }
 
 response = requests.post(url = url, data = json.dumps(data), headers = headers)
-print(response)
-print(response.text)
-print(response.status_code)
+# print(response)
+# print(response.text)
+# print(response.status_code)

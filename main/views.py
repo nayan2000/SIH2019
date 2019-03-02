@@ -6,6 +6,8 @@ import sendgrid
 from random import choice
 import uuid
 
+import pandas as pd
+
 from django.shortcuts import render
 from django.contrib.auth import login, logout, authenticate
 from django.contrib.auth.decorators import login_required
@@ -22,6 +24,7 @@ from sendgrid.helpers.mail import Mail, Content, Email
 from main.models import UserProfile, UploadFile
 from main import utils, email_body
 from sih.keyconfig import SENDGRID_API_KEY, FIREBASE_API_KEY, FCM_URL
+from sih.settings import MEDIA_ROOT
 
 chars = string.ascii_lowercase + string.ascii_uppercase + string.digits
 url = 'http://alertify.org'
@@ -439,11 +442,38 @@ def send_sms(request):
             return JsonResponse({"message":"Field Missing: {0}".format(missing_data), "status":3})
 
 @csrf_exempt
+def send_sms_request(list):
+    import json
+    url = 'http://api.msg91.com/api/v2/sendsms'
+
+    headers = {
+        'authkey':'263822AtqZb3rXHfIk5c6f0be5',
+        'Content-Type':'application/json'
+    }
+    print(list)
+    data = {
+        "sender": "ALERTF",
+        "route": "4",
+        "country": "91",
+        "sms": [
+            {
+                "message": "URGENT: We have predicted high chances of a Tsunami striking in your area. Please be aware.",
+                "to": list
+            }
+        ]
+    }
+    print(data)
+
+    response = requests.post(url = url, data = json.dumps(data), headers = headers)
+    print(response.text)
+
+
+@csrf_exempt
 def upload_csv(request):
     if request.method == 'GET':
         return JsonResponse({"message":"Upload Excel/CSV files. "})
     # if not GET, then proceed
-    FILE_FORMATS_SUPPORTED = ('.csv', '.xlsx', '.xls')
+    FILE_FORMATS_SUPPORTED = ('.csv') #, '.xlsx', '.xls')
     try:    
         file = request.FILES["csv_file"]
         if not file.name.endswith(FILE_FORMATS_SUPPORTED):
@@ -459,9 +489,41 @@ def upload_csv(request):
     except:
         return JsonResponse({"message":"Error in Uploading Excel. Please try again."})
 
-def excel_to_csv(excel_name):
-    import pandas as pd
-    data_xls = pd.read_excel(excel_name, 'Sheet1', index_col=None)
-    csv_name = excel_name.strip('.')[0]+'.csv'
-    data_xls.to_csv(csv_name, encoding='utf-8')
+def send_sms_excel(file_instance):
+    
+    try:
+        path = MEDIA_ROOT + '/' + file_instance.filer.name
+        data = pd.read_csv(path)
+    except:
+        message = 'Error reading CSV.'
+        return message
+    phone_numbers = []
+
+    for i in range(data.shape[0]):
+        phone_numbers.append(str(data.loc[i][1]))
+
+    result = phone_numbers
+    send_sms_request(result)
+    
+
+# def excel_to_csv(excel_name):
+#     import pandas as pd
+#     try:
+#         data_xls = pd.read_excel(excel_name, 'Sheet1', index_col=None)
+#         csv_name = excel_name.strip('.')[0]+'.csv'
+#         data_xls.to_csv(csv_name, encoding='utf-8')
+#         return 1, data_xls
+#     except Exception as e:
+#         print(e)
+#         return 0, str(e)
+
+# def send_excel_sms(file_instance):
+#     path = file_instance.filer.name
+#     if path.endswith(('xls','xlsx')):
+#         response = excel_to_csv(path)
+#         if response:
+#             csv = response[1]
+#         else:
+#             return JsonResponse({"message":"Sorry! Operation Failed."})
+        
 
