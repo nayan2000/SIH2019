@@ -29,6 +29,7 @@ from sih.settings import MEDIA_ROOT
 
 chars = string.ascii_lowercase + string.ascii_uppercase + string.digits
 url = 'http://alertify.org'
+USGS_GEODATA = 'https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/4.5_day.geojson'
 
 
 @csrf_exempt
@@ -42,6 +43,7 @@ def get_food_location(request):
     if request.method == 'GET':
         user_profiles = UserProfile.objects.all().exclude(lat=0, long=0).values('lat','long', 'is_food_req', 'name')
         return JsonResponse({"location":list(user_profiles)})
+
 
 def nill(request):
     return HttpResponse('nill')
@@ -226,21 +228,38 @@ def admin_notify(request):
         try:
             title = data['title']
             message = data['message']
+        #--------
+            mag, coords = get_geodata(geo_url)
+            lat = float(coords[0])
+            long = float(coords[1])
+            width = float(2)/2
+            height = float(2)/2
         except KeyError as missing_data:
             return JsonResponse({"message":"Field Missing: {0}".format(missing_data), "status":3})
         # Make list of user_profile.device_token and query all
         undone_users = []
         for u in UserProfile.objects.all():
-            devToken = u.device_token
-            try:
-                res = sendnotif(devToken, title, message)
-                print(res)
-                if res['failure'] == 1:
+            if (u.lat > lat - height and u.lat < lat + height) and (u.long > long + height and u.long < long2):
+                devToken = u.device_token
+                try:
+                    res = sendnotif(devToken, title, message)
+                    print(res)
+                    if res['failure'] == 1:
+                        undone_users.append(u)
+                except Exception:
                     undone_users.append(u)
-            except Exception:
-                undone_users.append(u)
         return JsonResponse({ "undone_users":str(len(undone_users))})
             # Send sms to undone_users
+
+
+# Get Geojson
+def get_geodata(geo_url):
+    georeq = requests.get(geo_url).text
+    geoj = json.loads(georeq)
+    for feature in geoj['features']:
+        mag = feature['properties']['mag']
+        coords = feature['geometry']['coordinates']
+        return mag, coords
 
 
 # alternate method
@@ -328,6 +347,47 @@ def login_view(request):
     elif request.method == 'GET':
         return JsonResponse({"message":"Supposed to be Login Page."})
 
+
+@csrf_exempt
+def update_food_location(request):
+    if request.method == 'POST':
+        check = check_user(request)
+        try:
+            user_id, user_profile = check[1:]
+        except ValueError:
+            return check[1]
+
+        try:
+            # just to decode JSON properly
+            data = json.loads(request.body.decode('utf8').replace("'", '"'))
+        except:
+            return JsonResponse({"message": "Please check syntax of JSON data passed.", 'status':4})
+
+        try:
+            is_food_req = data['is_food_req']
+        except KeyError as missing_data:
+            return JsonResponse({"message":"Field Missing: {0}".format(missing_data), "status":3})
+
+        # if (len(str(is_food_req)))>1:
+        #     return JsonResponse({"message":"Invalid Value for is_food_req. Acceptable: 0 or 1", "status":0})
+
+        if str(is_food_req) not in ["0","1"]:
+            return JsonResponse({"message":"Invalid Value for is_food_req. Pass 0 or 1", "status":0})
+
+        is_food_req = int(is_food_req)
+
+        if is_food_req:
+            user_profile.is_food_req = True
+        if not is_food_req:
+            user_profile.is_food_req = False
+        user_profile.save()
+
+        return JsonResponse({"message":"Updated status successfully!", "status":1})
+
+    if request.method == "GET":
+        return JsonResponse({"message":"API endpoint for updating food requirement status"})
+
+
 @csrf_exempt
 def update_location(request):
     if request.method=='POST':
@@ -372,6 +432,7 @@ def update_location(request):
 
     if request.method == 'GET':
         return JsonResponse({"message":"API endpoint for updation of User Latitude and Longitude."})
+
 
 @csrf_exempt
 def update_safe_status(request):
@@ -437,7 +498,7 @@ def send_sms_request(list, message="URGENT: We have predicted high chances of a 
     print(data)
     response = requests.post(url = url, data = json.dumps(data), headers = headers)
     print(response.text)
-    
+
 
 @csrf_exempt
 def send_sms(request):
@@ -478,15 +539,15 @@ def upload_csv(request):
         return JsonResponse({"message":"Upload Excel/CSV files. "})
     # if not GET, then proceed
     FILE_FORMATS_SUPPORTED = ('.csv') #, '.xlsx', '.xls')
-    try:    
+    try:
         file = request.FILES["csv_file"]
         if not file.name.endswith(FILE_FORMATS_SUPPORTED):
             return JsonResponse({"message":"File is not of CSV type."})
-        
+
         if file.multiple_chunks():
             message = "Uploaded file is too big (%.2f MB)." % (csv_file.size/(1000*1000),)
             return JsonResponse({"message":message})
-        
+
         upload_instance = UploadFile.objects.create(name=file.name, filer=file)
         send_sms_excel(upload_instance)
         message = "Uploaded Successfully!"
@@ -508,7 +569,7 @@ def upload_csv(request):
         return render(request, 'main/message.html', context)
 
 def send_sms_excel(file_instance):
-    
+
     try:
         path = MEDIA_ROOT + '/' + file_instance.filer.name
         data = pd.read_csv(path)
@@ -522,7 +583,7 @@ def send_sms_excel(file_instance):
 
     result = phone_numbers
     send_sms_request(result)
-    
+
 
 # def excel_to_csv(excel_name):
 #     import pandas as pd
@@ -543,5 +604,5 @@ def send_sms_excel(file_instance):
 #             csv = response[1]
 #         else:
 #             return JsonResponse({"message":"Sorry! Operation Failed."})
-        
+
 
