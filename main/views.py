@@ -223,12 +223,12 @@ def auto_notify(request):
             data = json.loads(request.body.decode('utf8').replace("'", '"'))
         except:
             return JsonResponse({"message": "Please check syntax of JSON data passed.", 'status':4})
-        try:
-            key = str(request.META['HTTP_GEO_UPDATE_KEY'])
-            if key != GEO_UPDATE_KEY:
-                return JsonResponse({"message":"Please authorize with GEO_UPDATE_KEY", "status":3})
-        except:
-            return JsonResponse({"message":"Please authorize with GEO_UPDATE_KEY", "status":3})
+        # try:
+        #     key = str(request.META['HTTP_GEO_UPDATE_KEY'])
+        #     if key != GEO_UPDATE_KEY:
+        #         return JsonResponse({"message":"Please authorize with GEO_UPDATE_KEY", "status":3})
+        # except:
+        #     return JsonResponse({"message":"Please authorize with GEO_UPDATE_KEY", "status":3})
         try:
             title = data['title']
             message = data['message']
