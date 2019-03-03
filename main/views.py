@@ -29,7 +29,7 @@ from sih.settings import MEDIA_ROOT
 
 chars = string.ascii_lowercase + string.ascii_uppercase + string.digits
 url = 'http://alertify.org'
-USGS_GEODATA = 'https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/4.5_day.geojson'
+USGS_GEODATA_URL = 'https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/4.5_day.geojson'
 
 
 @csrf_exempt
@@ -51,7 +51,6 @@ def nill(request):
 @csrf_exempt
 def register(request):
 
-    # Why the fuck did you send a get request here?
     if request.method == 'GET':
         return JsonResponse({'status':3, 'message':'The API where new users can register themselves on the app.'})
 
@@ -228,14 +227,20 @@ def admin_notify(request):
         try:
             title = data['title']
             message = data['message']
-        #--------
-            mag, coords = get_geodata(geo_url)
+
+        except KeyError as missing_data:
+            return JsonResponse({"message":"Field Missing: {0}".format(missing_data), "status":3})
+        try:
+            mag, coords = get_geodata(USGS_GEODATA_URL)
+        except:
+            return JsonResponse({"message":"Unable to parse or receive real-time USGS Data. Please Check Connection.", "status":0})
+        try:
             lat = float(coords[0])
             long = float(coords[1])
             width = float(2)/2
             height = float(2)/2
-        except KeyError as missing_data:
-            return JsonResponse({"message":"Field Missing: {0}".format(missing_data), "status":3})
+        except:
+            return JsonResponse({"message":'Invalid value for \'coords or box\'', "status":0})
         # Make list of user_profile.device_token and query all
         undone_users = []
         for u in UserProfile.objects.all():
