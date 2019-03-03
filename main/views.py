@@ -347,6 +347,47 @@ def login_view(request):
     elif request.method == 'GET':
         return JsonResponse({"message":"Supposed to be Login Page."})
 
+
+@csrf_exempt
+def update_food_location(request):
+    if request.method == 'POST':
+        check = check_user(request)
+        try:
+            user_id, user_profile = check[1:]
+        except ValueError:
+            return check[1]
+
+        try:
+            # just to decode JSON properly
+            data = json.loads(request.body.decode('utf8').replace("'", '"'))
+        except:
+            return JsonResponse({"message": "Please check syntax of JSON data passed.", 'status':4})
+
+        try:
+            is_food_req = data['is_food_req']
+        except KeyError as missing_data:
+            return JsonResponse({"message":"Field Missing: {0}".format(missing_data), "status":3})
+
+        # if (len(str(is_food_req)))>1:
+        #     return JsonResponse({"message":"Invalid Value for is_food_req. Acceptable: 0 or 1", "status":0})
+
+        if str(is_food_req) not in ["0","1"]:
+            return JsonResponse({"message":"Invalid Value for is_food_req. Pass 0 or 1", "status":0})
+
+        is_food_req = int(is_food_req)
+
+        if is_food_req:
+            user_profile.is_food_req = True
+        if not is_food_req:
+            user_profile.is_food_req = False
+        user_profile.save()
+
+        return JsonResponse({"message":"Updated status successfully!", "status":1})
+
+    if request.method == "GET":
+        return JsonResponse({"message":"API endpoint for updating food requirement status"})
+
+
 @csrf_exempt
 def update_location(request):
     if request.method=='POST':
