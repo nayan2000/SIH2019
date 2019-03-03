@@ -23,7 +23,7 @@ from sendgrid.helpers.mail import Mail, Content, Email
 
 from main.models import UserProfile, UploadFile
 from main import utils, email_body
-from sih.keyconfig import SENDGRID_API_KEY, FIREBASE_API_KEY, FCM_URL
+# from sih.keyconfig import SENDGRID_API_KEY, FIREBASE_API_KEY, FCM_URL
 from sih.keyconfig import *
 from sih.settings import MEDIA_ROOT
 
@@ -207,17 +207,16 @@ def update_device_token(request):
 
 
 @csrf_exempt
-def admin_notify(request):
+def auto_notify(request):
     if request.method == 'POST':
         # Note: Change to admin Auth
-        check = check_user(request)
-        try:
-            user_id, user_profile = check[1:]
-        except ValueError:
-            return check[1]
-
-        if not user_profile.is_da:
-            return JsonResponse({"message":"You must be logged in as a DA to add events.", "status":0})
+        # check = check_user(request)
+        # try:
+            # user_id, user_profile = check[1:]
+        # except ValueError:
+            # return check[1]
+        # if not user_profile.is_da:
+        #     return JsonResponse({"message":"You must be logged in as a DA to add events.", "status":0})
 
         try:
             # just to decode JSON properly
@@ -225,15 +224,18 @@ def admin_notify(request):
         except:
             return JsonResponse({"message": "Please check syntax of JSON data passed.", 'status':4})
         try:
+            key = str(request.META['HTTP_GEO_UPDATE_KEY'])
+            if key != GEO_UPDATE_KEY:
+                return JsonResponse({"message":"Please authorize with GEO_UPDATE_KEY", "status":3})
+        except:
+            return JsonResponse({"message":"Please authorize with GEO_UPDATE_KEY", "status":3})
+        try:
             title = data['title']
             message = data['message']
-
+            mag = data['mag']
+            coords = data['coords']
         except KeyError as missing_data:
             return JsonResponse({"message":"Field Missing: {0}".format(missing_data), "status":3})
-        try:
-            mag, coords = get_geodata(USGS_GEODATA_URL)
-        except:
-            return JsonResponse({"message":"Unable to parse or receive real-time USGS Data. Please Check Connection.", "status":0})
         try:
             lat = float(coords[0])
             long = float(coords[1])
@@ -244,7 +246,8 @@ def admin_notify(request):
         # Make list of user_profile.device_token and query all
         undone_users = []
         for u in UserProfile.objects.all():
-            if (u.lat > lat - height and u.lat < lat + height) and (u.long > long + height and u.long < long2):
+            print(u)
+            if (u.lat > lat - height and u.lat < lat + height) and (u.long > long - width and u.long < long + width):
                 devToken = u.device_token
                 try:
                     res = sendnotif(devToken, title, message)
@@ -253,18 +256,9 @@ def admin_notify(request):
                         undone_users.append(u)
                 except Exception:
                     undone_users.append(u)
+        print(undone_users)
         return JsonResponse({ "undone_users":str(len(undone_users))})
             # Send sms to undone_users
-
-
-# Get Geojson
-def get_geodata(geo_url):
-    georeq = requests.get(geo_url).text
-    geoj = json.loads(georeq)
-    for feature in geoj['features']:
-        mag = feature['properties']['mag']
-        coords = feature['geometry']['coordinates']
-        return mag, coords
 
 
 # alternate method

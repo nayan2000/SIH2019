@@ -23,7 +23,7 @@ urlpatterns = [
 	url(r'^update_device_token/?',views.update_device_token,name='update_device_token'),
 
 	#url to send push notifications and sms
-	url(r'^admin_notify/?',views.admin_notify,name='admin_notify'),
+	url(r'^auto_notify/?',views.auto_notify,name='auto_notify'),
 
 	#urls to update location and safe status
 	url(r'^update_location/?',views.update_location,name='update_location'),
