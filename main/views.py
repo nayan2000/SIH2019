@@ -469,6 +469,8 @@ def send_sms(request):
         phone = [str(phone)]
         send_sms_request(phone, message)
         return JsonResponse({"message":"SMS sent!"})
+    else:
+        return JsonResponse({"message":"Post SMS sending requests here,"})
 
 @csrf_exempt
 def upload_csv(request):
