@@ -239,8 +239,8 @@ def auto_notify(request):
         try:
             lat = float(coords[0])
             long = float(coords[1])
-            width = float(2)/2
-            height = float(2)/2
+            width = float(4)/2
+            height = float(4)/2
         except:
             return JsonResponse({"message":'Invalid value for \'coords or box\'', "status":0})
         # Make list of user_profile.device_token and query all
