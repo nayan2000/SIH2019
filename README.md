@@ -7,10 +7,19 @@ Basically our product aims to predict tsunami and alert people, if predicted one
 Also, we plan to help the rescue officials in carrying out the necessary rescue operations through an App+WebPortal.
 
 To get started with this,
-
+<pre>
+git clone https://github.com/nayan2000/SIH2019.git
+virtualenv -p python3 venv
 source venv/bin/activate
-cd sih
+cd SIH2019
+pip install -r requirements.txt
+python manage.py migrate --run-syncdb 
+</pre>
+(Appending --run-syncdb option is not necessary, however preferred to 
+avoid Database OperationalError(s) if tables not synchronized according to migrations)
+<pre>
 python manage.py runserver
+</pre>
 
 For Security purposes, I Have removed all my API keys from sih/keyconfig.py
 You need to generate all these keys from your account for getting the app running.
